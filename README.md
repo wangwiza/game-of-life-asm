@@ -1,73 +1,98 @@
-# Conway's Game of Life - ARMv7 Assembly Implementation
+# Conway's Game of Life in ARMv7 Assembly
 
-This project is an implementation of Conway's Game of Life, a cellular automaton, written in ARMv7 assembly language. The program simulates the evolution of a grid of cells based on predefined rules.
+A from-scratch implementation of Conway's Game of Life for ARMv7, featuring direct VGA output and PS/2 keyboard input for real-time, interactive cellular automata simulation.
 
-## Overview
-Conway's Game of Life is a zero-player game in which the state of the board evolves over discrete time steps. Each cell on the board can either be alive or dead, and its state in the next generation is determined by the states of its eight neighbors.
+-----
 
-### Rules of the Game
-1. A live cell with fewer than two live neighbors dies (underpopulation).
-2. A live cell with two or three live neighbors survives to the next generation.
-3. A live cell with more than three live neighbors dies (overpopulation).
-4. A dead cell with exactly three live neighbors becomes alive (reproduction).
+## 🎮 About The Project
 
-## Features
-- **Data Representation**: The grid is stored as a 2D array in memory, where each cell is represented by a single bit or word.
-- **Initialization**: The program initializes the board with predefined patterns.
-- **Neighbor Counting**: Efficient calculation of the number of live neighbors for each cell.
-- **State Transition**: Updates the board based on Conway's rules.
-- **Output**: Prints or updates the board to visualize the game progression.
+This project brings Conway's classic zero-player game to life on bare-metal ARMv7 hardware. It's a testament to the power of low-level programming, written entirely in assembly language. The simulation runs on a 16x12 grid, displayed on a VGA monitor, and allows for real-time interaction through a connected PS/2 keyboard.
 
-## File Structure
-- **Data Section**:
-  - `GoLBoard`: Stores the current state of the game board.
-  - `GoLNeighbours`: Temporary storage for neighbor counts.
-- **Text Section**:
-  - Functions to initialize the board and compute state transitions.
-  - Game loop logic for iterating over generations.
+The core of the project is a set of optimized routines for drawing graphics, handling user input, and, of course, implementing the rules of the Game of Life.
 
-## Getting Started
+-----
+
+## ✨ Features
+
+  * **VGA Graphics Driver**: Includes functions for drawing individual pixels, lines, and rectangles, as well as clearing the screen and writing characters.
+  * **PS/2 Keyboard Driver**: A simple driver to read scancodes from a PS/2 keyboard, enabling user interaction.
+  * **Interactive Grid**: A 16x12 grid is drawn on the screen where you can toggle cells on and off.
+  * **Cursor Navigation**: Use the 'W', 'A', 'S', and 'D' keys to move a cursor around the grid.
+  * **Cell Manipulation**: The 'SPACE' key flips the state of the cell under the cursor.
+  * **Simulation Control**: The 'N' key advances the simulation to the next generation.
+
+-----
+
+## 🛠️ How It Works
+
+The simulation is managed through a main loop that continuously checks for keyboard input. The state of the game is stored in two primary data structures: `GoLBoard` and `GoLNeighbours`.
+
+  * `GoLBoard`: A 2D array representing the grid, where each entry is a word indicating whether a cell is alive or dead.
+  * `GoLNeighbours`: A corresponding 2D array that stores the number of living neighbors for each cell. This is updated before each new generation is calculated.
+
+The program's flow is as follows:
+
+1.  **Initialization**: Clears the VGA screen, draws the grid, and displays the initial pattern from `GoLBoard`.
+2.  **User Input**: The main loop polls the PS/2 keyboard for input.
+3.  **Cursor Movement**: W, A, S, D keys update the cursor's position on the grid.
+4.  **State Toggling**: The spacebar flips the state of the selected cell in `GoLBoard` and updates the `GoLNeighbours` board.
+5.  **Generation Step**: Pressing 'N' triggers the update to the next generation:
+      * The current screen is cleared.
+      * `GoL_update_game_state_ASM` applies the rules of Conway's Game of Life to `GoLBoard` based on the counts in `GoLNeighbours`.
+      * The new `GoLBoard` is drawn to the screen.
+      * `GoL_update_neighbours_ASM` is called to prepare for the next step.
+
+-----
+
+## 🚀 Getting Started
+
+To get this project running, you'll need an ARMv7 development environment.
+
 ### Prerequisites
-- ARMv7-compatible assembler and simulator/emulator (e.g., `qemu-arm` or an ARM development board).
-- Basic knowledge of assembly programming.
+
+  * An ARMv7 assembler (e.g., `as`) and linker (e.g., `ld`).
+  * An ARMv7 simulator (like QEMU) or a physical development board with VGA and PS/2 ports.
 
 ### Building and Running
-1. Assemble the program:
-   ```bash
-   as -o conway.o part3.s
-   ld -o conway conway.o
-   ```
-2. Run the program:
-   ```bash
-   ./conway
-   ```
 
-### Example Initialization
-The program includes an example board initialized in the `.data` section. You can modify this to test different patterns (e.g., gliders, blinkers, or still lifes).
+1.  **Assemble the code**:
+    ```bash
+    as -o game_of_life.o game_of_life.s
+    ```
+2.  **Link the object file**:
+    ```bash
+    ld -o game_of_life game_of_life.o
+    ```
+3.  **Run the executable**:
+    ```bash
+    ./game_of_life
+    ```
+    (Or load it onto your development board)
 
-## How It Works
-### Core Functions
-- **Initialization**: Sets up the initial game board with a predefined pattern.
-- **Neighbor Calculation**: Iterates over each cell to calculate the number of live neighbors using efficient bitwise operations.
-- **State Update**: Applies Conway's rules to transition the board to the next generation.
+-----
 
-### Optimizations
-- Uses ARM-specific instructions for efficient memory access and bit manipulation.
-- Implements loops and conditions tailored for the ARM architecture.
+## ⌨️ Controls
 
-## Customization
-To modify the initial state of the board:
-1. Open the `.data` section in the assembly file.
-2. Update the `GoLBoard` array with your desired pattern.
-3. Reassemble and run the program.
+  * **W**: Move cursor up
+  * **A**: Move cursor left
+  * **S**: Move cursor down
+  * **D**: Move cursor right
+  * **SPACE**: Toggle the cell at the cursor's position (alive/dead)
+  * **N**: Advance to the next generation
 
-## Notes
-- Ensure the board dimensions and initialization patterns fit within the memory constraints.
-- The program assumes a fixed-size grid; extending it may require changes to the memory layout.
+-----
 
-## License
-This project is open-source. Feel free to use and modify it for educational purposes.
+## 🎨 Customization
 
-## Acknowledgments
-Conway's Game of Life was devised by John Conway in 1970. This implementation showcases how classic algorithms can be translated into low-level assembly programming.
+The initial state of the Game of Life board can be easily customized.
 
+1.  Open the `game_of_life.s` file.
+2.  Navigate to the `.data` section.
+3.  Modify the `GoLBoard` array with your desired starting pattern. A `1` represents a live cell, and a `0` represents a dead cell.
+4.  Re-assemble and run the program to see your new pattern in action\!
+
+-----
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
